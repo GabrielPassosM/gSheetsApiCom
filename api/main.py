@@ -1,3 +1,4 @@
+import base64
 import os
 from datetime import datetime, timezone
 
@@ -28,7 +29,7 @@ CREDENTIALS_DICT = {
     "type": os.getenv("GOOGLE_TYPE"),
     "project_id": os.getenv("GOOGLE_PROJECT_ID"),
     "private_key_id": os.getenv("GOOGLE_PRIVATE_KEY_ID"),
-    "private_key": os.getenv("GOOGLE_PRIVATE_KEY").replace("\\n", "\n"),  # Restaurar quebras de linha
+    "private_key": base64.b64decode(os.getenv("GOOGLE_PRIVATE_KEY_BASE64")).decode(),
     "client_email": os.getenv("GOOGLE_CLIENT_EMAIL"),
     "client_id": os.getenv("GOOGLE_CLIENT_ID"),
     "auth_uri": os.getenv("GOOGLE_AUTH_URI"),
