@@ -17,15 +17,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# dev_allowed_origins = [
-#     "localhost"
-# ]
-# prod_allowed_origins = os.getenv("ALLOWED_SITES").split(";")
-# allowed_origins = dev_allowed_origins + prod_allowed_origins
+dev_allowed_origins = [
+    "localhost"
+]
+prod_allowed_origins = os.getenv("ALLOWED_SITES").split(";")
+allowed_origins = dev_allowed_origins + prod_allowed_origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
