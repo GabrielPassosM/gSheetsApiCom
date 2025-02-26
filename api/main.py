@@ -2,7 +2,7 @@ import base64
 import os
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import gspread
@@ -17,9 +17,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+dev_allowed_origins = [
+    "localhost"
+]
+prod_allowed_origins = os.getenv("ALLOWED_SITES").split(";")
+allowed_origins = dev_allowed_origins + prod_allowed_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,16 +53,12 @@ def read_root():
     return {"message": "Hello, broski!"}
 
 
-@app.post("/add-row/{api_secret}/{sheet_id}/{add_timestamp}", status_code=200)
+@app.post("/add-row/{sheet_id}/{add_timestamp}", status_code=200)
 def add_row(
-    api_secret: str,
     sheet_id: str,
     add_timestamp: bool,
     row_info: dict,
 ) -> None:
-    if api_secret != os.getenv("API_SECRET"):
-        raise HTTPException(detail="Unauthorized", status_code=401)
-
     sheet = gc.open_by_key(sheet_id).sheet1
     row_info = list(row_info.values())
     if add_timestamp:
