@@ -2,7 +2,7 @@ import base64
 import os
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import gspread
@@ -17,34 +17,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
-dev_allowed_origins = [
-    "localhost"
-]
-prod_allowed_origins = os.getenv("ALLOWED_SITES").split(";")
-allowed_origins = dev_allowed_origins + prod_allowed_origins
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-
-    origin = request.headers.get("origin")
-    if origin and origin in allowed_origins:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-
-    return response
-
 
 CREDENTIALS_DICT = {
     "type": os.getenv("GOOGLE_TYPE"),
