@@ -1,8 +1,9 @@
 import base64
 import os
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import gspread
@@ -10,6 +11,8 @@ from google.oauth2.service_account import Credentials
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from pydantic import BaseModel, model_validator
+from consts import TEST_SHEEET_ID
 
 
 load_dotenv()
@@ -48,25 +51,58 @@ CREDENTIALS_DICT = {
 CREDENTIALS = Credentials.from_service_account_info(CREDENTIALS_DICT, scopes=["https://www.googleapis.com/auth/spreadsheets"])
 gc = gspread.authorize(CREDENTIALS)
 
+SHEETS_ID_PER_ROW_SIZE = {
+    3: [TEST_SHEEET_ID, os.getenv("CORA_SHEET_ID")],
+}
+
+
+@dataclass
+class AddRowBadRequest(HTTPException):
+    status_code: int = 404
+    detail: str = "Get out"
+
+
+class AddRowIn(BaseModel):
+    sheet_id: str
+    columns: dict
+
+    @model_validator(mode="after")
+    def make_validations(self):
+        size = len(self.columns)
+        if self.sheet_id not in SHEETS_ID_PER_ROW_SIZE.get(size, []):
+            raise AddRowBadRequest()
+
+        for value in self.columns.values():
+            if not isinstance(value, str) or len(value) > 80:
+                raise AddRowBadRequest()
+
+        return self
+
 
 @app.get("/")
 def read_root():
     return {"message": "Hello, broski!"}
 
 
-@app.post("/add-row/{sheet_id}/{add_timestamp}", status_code=200)
-@limiter.limit("10/minute")
+@app.post("/add-row/{add_timestamp}", status_code=200)
+@limiter.limit("3/minute")
 def add_row(
     request: Request,  # DONT remove - used by the limiter
-    sheet_id: str,
     add_timestamp: bool,
-    row_info: dict,
-) -> None:
-    sheet = gc.open_by_key(sheet_id).sheet1
-    row_info = list(row_info.values())
+    row_info: AddRowIn,
+) -> list[str]:
+
+    row_to_add = list(row_info.columns.values())
+
+    if row_info.sheet_id == TEST_SHEEET_ID:
+        return row_to_add
+
+    sheet = gc.open_by_key(row_info.sheet_id).sheet1
     if add_timestamp:
-        row_info.append(str(datetime.now(timezone.utc)))
-    sheet.append_row(row_info)
+        row_to_add.append(str(datetime.now(timezone.utc)))
+    sheet.append_row(row_to_add)
+
+    return row_to_add
 
 
 if __name__ == "__main__":
