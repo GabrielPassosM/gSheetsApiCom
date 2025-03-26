@@ -18,10 +18,7 @@ from consts import TEST_SHEEET_ID
 load_dotenv()
 
 
-app = FastAPI(
-    title="My communicator for the google sheets API",
-    version="1.0.0"
-)
+app = FastAPI(title="My communicator for the google sheets API", version="1.0.0")
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
@@ -48,11 +45,13 @@ CREDENTIALS_DICT = {
     "client_x509_cert_url": os.getenv("GOOGLE_CLIENT_X509_CERT_URL"),
 }
 
-CREDENTIALS = Credentials.from_service_account_info(CREDENTIALS_DICT, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+CREDENTIALS = Credentials.from_service_account_info(
+    CREDENTIALS_DICT, scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
 gc = gspread.authorize(CREDENTIALS)
 
 SHEETS_ID_PER_ROW_SIZE = {
-    3: [TEST_SHEEET_ID, os.getenv("CORA_SHEET_ID")],
+    3: [TEST_SHEEET_ID, os.getenv("CORA_SHEET_ID"), os.getenv("STELLA_SHEET_ID")],
 }
 
 
@@ -107,4 +106,5 @@ def add_row(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

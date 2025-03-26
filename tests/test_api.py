@@ -14,7 +14,7 @@ def test_add_row():
             "Name": "aaaa",
             "Email": "aaa@gmail.com",
             "Phone": "99999999",
-        }
+        },
     }
     response = client.post("/add-row/true", json=data)
     assert response.status_code == 200
@@ -28,7 +28,7 @@ def test_add_row():
             "Email": "aaa@gmail.com",
             "Phone": "99999999",
             "extraColumn": "value",
-        }
+        },
     }
     response = client.post("/add-row/true", json=data)
     assert response.status_code == 404
