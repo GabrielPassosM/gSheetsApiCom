@@ -51,7 +51,12 @@ CREDENTIALS = Credentials.from_service_account_info(
 gc = gspread.authorize(CREDENTIALS)
 
 SHEETS_ID_PER_ROW_SIZE = {
-    3: [TEST_SHEEET_ID, os.getenv("CORA_SHEET_ID"), os.getenv("STELLA_SHEET_ID")],
+    3: [
+        TEST_SHEEET_ID,
+        os.getenv("CORA_SHEET_ID"),
+        os.getenv("STELLA_SHEET_ID"),
+        os.getenv("GAMALABS_SHEET_ID"),
+    ],
 }
 
 
